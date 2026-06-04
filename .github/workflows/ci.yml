@@ -1,0 +1,138 @@
+name: Validate Plugin
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate plugin structure
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate plugin.json structure
+        run: |
+          echo "Checking .claude-plugin/plugin.json..."
+          python3 - <<'EOF'
+          import json, sys
+
+          with open(".claude-plugin/plugin.json") as f:
+              data = json.load(f)
+
+          required_top = ["name", "version", "author", "description", "skills", "commands"]
+          for key in required_top:
+              if key not in data:
+                  print(f"FAIL: missing key '{key}' in plugin.json")
+                  sys.exit(1)
+
+          if not isinstance(data["skills"], list):
+              print("FAIL: 'skills' must be an array")
+              sys.exit(1)
+
+          if not isinstance(data["commands"], list):
+              print("FAIL: 'commands' must be an array")
+              sys.exit(1)
+
+          if "name" not in data["author"]:
+              print("FAIL: 'author' must have a 'name' field")
+              sys.exit(1)
+
+          print(f"OK: plugin.json valid — {data['name']} v{data['version']}")
+          EOF
+
+      - name: Validate marketplace.json structure
+        run: |
+          echo "Checking .claude-plugin/marketplace.json..."
+          python3 - <<'EOF'
+          import json, sys
+
+          with open(".claude-plugin/marketplace.json") as f:
+              data = json.load(f)
+
+          required = ["name", "keywords"]
+          for key in required:
+              if key not in data:
+                  print(f"FAIL: missing key '{key}' in marketplace.json")
+                  sys.exit(1)
+
+          if not isinstance(data["keywords"], list) or len(data["keywords"]) == 0:
+              print("FAIL: 'keywords' must be a non-empty array")
+              sys.exit(1)
+
+          print(f"OK: marketplace.json valid — {len(data['keywords'])} keywords")
+          EOF
+
+      - name: Check all skill SKILL.md files exist
+        run: |
+          echo "Checking skill directories..."
+          python3 - <<'EOF'
+          import json, sys, os
+
+          with open(".claude-plugin/plugin.json") as f:
+              data = json.load(f)
+
+          all_ok = True
+          for skill_dir in data["skills"]:
+              skill_file = os.path.join(skill_dir, "SKILL.md")
+              if not os.path.isfile(skill_file):
+                  print(f"FAIL: missing {skill_file}")
+                  all_ok = False
+              else:
+                  print(f"OK: {skill_file}")
+
+          if not all_ok:
+              sys.exit(1)
+          EOF
+
+      - name: Check all command .md files exist
+        run: |
+          echo "Checking command files..."
+          python3 - <<'EOF'
+          import json, sys, os
+
+          with open(".claude-plugin/plugin.json") as f:
+              data = json.load(f)
+
+          all_ok = True
+          for cmd_file in data["commands"]:
+              if not os.path.isfile(cmd_file):
+                  print(f"FAIL: missing {cmd_file}")
+                  all_ok = False
+              else:
+                  print(f"OK: {cmd_file}")
+
+          if not all_ok:
+              sys.exit(1)
+          EOF
+
+      - name: Check SKILL.md files have frontmatter
+        run: |
+          echo "Checking SKILL.md frontmatter..."
+          python3 - <<'EOF'
+          import json, sys, os
+
+          with open(".claude-plugin/plugin.json") as f:
+              data = json.load(f)
+
+          all_ok = True
+          for skill_dir in data["skills"]:
+              skill_file = os.path.join(skill_dir, "SKILL.md")
+              with open(skill_file) as f:
+                  content = f.read()
+              if not content.startswith("---"):
+                  print(f"FAIL: {skill_file} missing YAML frontmatter (must start with ---)")
+                  all_ok = False
+              else:
+                  print(f"OK: {skill_file} has frontmatter")
+
+          if not all_ok:
+              sys.exit(1)
+          EOF
+
+      - name: All checks passed
+        run: echo "Plugin structure is valid."

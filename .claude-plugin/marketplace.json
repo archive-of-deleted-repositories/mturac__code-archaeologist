@@ -1,0 +1,19 @@
+{
+  "name": "code-archaeologist",
+  "display_name": "Code Archaeologist",
+  "short_description": "Uncover why code exists, who owns it, and how it evolved — straight from git history.",
+  "keywords": [
+    "git",
+    "history",
+    "legacy",
+    "codebase",
+    "archaeology",
+    "documentation",
+    "knowledge",
+    "bus-factor",
+    "blame",
+    "evolution"
+  ],
+  "category": "developer-tools",
+  "license": "MIT"
+}

@@ -1,0 +1,19 @@
+{
+  "name": "code-archaeologist",
+  "version": "0.1.0",
+  "author": {
+    "name": "mturac"
+  },
+  "description": "Uncover intent and evolution in legacy codebases through git history, comments, and structural patterns. Answer 'why does this code exist?' and 'who understands this?'",
+  "skills": [
+    "skills/git-history",
+    "skills/why-this",
+    "skills/bus-factor"
+  ],
+  "commands": [
+    "commands/excavate.md",
+    "commands/why-this.md",
+    "commands/timeline.md",
+    "commands/bus-factor.md"
+  ]
+}
